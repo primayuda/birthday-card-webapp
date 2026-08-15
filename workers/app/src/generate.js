@@ -5,6 +5,7 @@ import {
   methodNotAllowed,
   runChat,
 } from "./ai-utils.js";
+import { genderInstruction, normalizeGender } from "./gender.js";
 
 function buildPrompt(inputs) {
   return `Write one funny, family-friendly birthday card message (2-4 sentences, under 320 characters).
@@ -14,6 +15,7 @@ Must naturally include ALL of these details:
 - Hobby: ${inputs.hobby}
 - Adjective: ${inputs.adjective}
 - Plural nouns: ${inputs.pluralNouns}
+- ${genderInstruction(inputs.gender)}
 
 Tone: playful and witty. Output ONLY the message text, no quotes or labels.`;
 }
@@ -33,7 +35,9 @@ function validateInputs(body) {
   if (!pluralNouns || pluralNouns.length > LIMITS.pluralNouns) return null;
   if (!Number.isInteger(age) || age < 1 || age > 120) return null;
 
-  return { name, age, hobby, adjective, pluralNouns };
+  const gender = normalizeGender(body.gender);
+
+  return { name, age, hobby, adjective, pluralNouns, gender };
 }
 
 function cleanMessage(text) {

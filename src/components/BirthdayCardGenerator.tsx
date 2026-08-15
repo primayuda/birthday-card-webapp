@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { normalizeInputs, type CardInputs } from "@/lib/messages";
+import { GENDER_OPTIONS, type Gender } from "@/lib/gender";
 import { requestCardMessage } from "@/lib/requestCardMessage";
 import { requestLuckyFill } from "@/lib/requestLuckyFill";
 import { requestBirthdayImage } from "@/lib/requestBirthdayImage";
@@ -47,6 +48,7 @@ async function createCard(
 
 export function BirthdayCardGenerator() {
   const [name, setName] = useState("");
+  const [gender, setGender] = useState<Gender>("undisclosed");
   const [age, setAge] = useState("");
   const [hobby, setHobby] = useState("");
   const [adjective, setAdjective] = useState("");
@@ -75,7 +77,7 @@ export function BirthdayCardGenerator() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return null;
 
-    return normalizeInputs(name, parsedAge, hobby, adjective, pluralNouns);
+    return normalizeInputs(name, parsedAge, hobby, adjective, pluralNouns, gender);
   }
 
   async function addCard(inputs: CardInputs) {
@@ -152,7 +154,7 @@ export function BirthdayCardGenerator() {
     setErrors({});
 
     try {
-      const fill = await requestLuckyFill();
+      const fill = await requestLuckyFill(gender);
 
       if (!name.trim()) setName(fill.name);
       if (!age.trim()) setAge(fill.age);
@@ -182,7 +184,7 @@ export function BirthdayCardGenerator() {
             Birthday Bash Card Maker
           </h1>
           <p className="mx-auto max-w-xl text-sm text-muted-foreground sm:text-base">
-            Fill in all five fields — AI writes a fresh message for each card,
+            Fill in the details below — AI writes a fresh message for each card,
             with classic templates as backup.
           </p>
         </div>
@@ -211,6 +213,33 @@ export function BirthdayCardGenerator() {
                   aria-invalid={errors.name || undefined}
                   className={cn(inputClassName, errors.name && "border-destructive")}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label id="gender-label">Gender</Label>
+                <div
+                  className="grid grid-cols-1 gap-2 sm:grid-cols-3"
+                  role="radiogroup"
+                  aria-labelledby="gender-label"
+                >
+                  {GENDER_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={gender === option.value}
+                      onClick={() => setGender(option.value)}
+                      className={cn(
+                        "touch-manipulation rounded-md border px-3 py-2.5 text-left text-sm transition-colors",
+                        gender === option.value
+                          ? "border-primary bg-primary/10 font-medium text-primary"
+                          : "border-border bg-background hover:bg-muted/50",
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-2">

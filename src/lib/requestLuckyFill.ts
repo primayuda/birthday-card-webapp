@@ -1,5 +1,6 @@
 import { getRandomLuckyFill, type LuckyFill } from "@/lib/luckyWords";
 import { getApiBase } from "@/lib/apiBase";
+import type { Gender } from "@/lib/gender";
 
 export type LuckyFillSource = "ai" | "template";
 
@@ -7,10 +8,14 @@ export interface LuckyFillResult extends LuckyFill {
   source: LuckyFillSource;
 }
 
-export async function requestLuckyFill(): Promise<LuckyFillResult> {
+export async function requestLuckyFill(
+  gender: Gender = "undisclosed",
+): Promise<LuckyFillResult> {
   try {
     const response = await fetch(`${getApiBase()}api/lucky`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gender }),
     });
 
     if (response.ok) {
@@ -39,5 +44,5 @@ export async function requestLuckyFill(): Promise<LuckyFillResult> {
     /* API unavailable */
   }
 
-  return { ...getRandomLuckyFill(), source: "template" };
+  return { ...getRandomLuckyFill(gender), source: "template" };
 }

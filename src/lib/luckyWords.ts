@@ -1,18 +1,40 @@
+import type { Gender } from "@/lib/gender";
+
 function pick<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-export const LUCKY_NAMES = [
-  "Captain Sparkles",
+export const LUCKY_NAMES_MALE = [
   "Sir Reginald",
-  "Pickles McGee",
-  "Grandma Zoom",
-  "Professor Wobble",
   "Chad Thundercake",
-  "Auntie Chaos",
-  "The Honourable Noodle",
   "Barry the Bold",
+  "Professor Wobble",
+  "Captain Sparkles",
+  "Duke McFluffington",
+];
+
+export const LUCKY_NAMES_FEMALE = [
   "Princess Pancake",
+  "Auntie Chaos",
+  "Grandma Zoom",
+  "Lady Confetti",
+  "Queen Nacho",
+  "Madame Wobbleton",
+];
+
+export const LUCKY_NAMES_NEUTRAL = [
+  "Pickles McGee",
+  "The Honourable Noodle",
+  "Captain Sparkles",
+  "Professor Wobble",
+  "Barry the Bold",
+  "Auntie Chaos",
+];
+
+export const LUCKY_NAMES = [
+  ...LUCKY_NAMES_MALE,
+  ...LUCKY_NAMES_FEMALE,
+  ...LUCKY_NAMES_NEUTRAL,
 ];
 
 export const LUCKY_AGES = [3, 7, 13, 16, 21, 29, 37, 42, 50, 69, 100];
@@ -64,9 +86,16 @@ export interface LuckyFill {
   pluralNouns: string;
 }
 
-export function getRandomLuckyFill(): LuckyFill {
+export function getRandomLuckyFill(gender: Gender = "undisclosed"): LuckyFill {
+  const names =
+    gender === "male"
+      ? LUCKY_NAMES_MALE
+      : gender === "female"
+        ? LUCKY_NAMES_FEMALE
+        : LUCKY_NAMES_NEUTRAL;
+
   return {
-    name: pick(LUCKY_NAMES),
+    name: pick(names),
     age: String(pick(LUCKY_AGES)),
     hobby: pick(LUCKY_HOBBIES),
     adjective: pick(LUCKY_ADJECTIVES),

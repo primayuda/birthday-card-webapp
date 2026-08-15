@@ -1,9 +1,12 @@
+import { normalizeGender, type Gender } from "@/lib/gender";
+
 export interface CardInputs {
   name: string;
   age: number;
   hobby: string;
   adjective: string;
   pluralNouns: string;
+  gender: Gender;
 }
 
 function capitalize(str: string): string {
@@ -87,7 +90,8 @@ export function normalizeInputs(
   age: number,
   hobby: string,
   adjective: string,
-  pluralNouns: string
+  pluralNouns: string,
+  gender: Gender | string = "undisclosed",
 ): CardInputs {
   return {
     name: capitalize(name.trim()),
@@ -95,6 +99,7 @@ export function normalizeInputs(
     hobby: capitalize(hobby.trim()),
     adjective: lower(adjective),
     pluralNouns: lower(pluralNouns),
+    gender: normalizeGender(gender),
   };
 }
 

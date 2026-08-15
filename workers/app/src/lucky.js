@@ -5,8 +5,10 @@ import {
   methodNotAllowed,
   runChat,
 } from "./ai-utils.js";
+import { genderInstruction, normalizeGender } from "./gender.js";
 
-const LUCKY_PROMPT = `Generate funny, family-friendly random values for a birthday card form.
+function buildLuckyPrompt(gender) {
+  return `Generate funny, family-friendly random values for a birthday card form.
 Return ONLY valid JSON with this exact shape (no markdown, no extra text):
 {"name":"...","age":30,"hobby":"...","adjective":"...","pluralNouns":"..."}
 
@@ -16,7 +18,9 @@ Rules:
 - hobby: funny hobby phrase, max 80 characters
 - adjective: funny adjective phrase, max 40 characters
 - pluralNouns: funny plural nouns, max 80 characters
-- Be whimsical and absurd but family-friendly`;
+- Be whimsical and absurd but family-friendly
+- ${genderInstruction(gender)}`;
+}
 
 function normalizeKeys(body) {
   if (!body || typeof body !== "object") return body;
@@ -91,10 +95,19 @@ export async function handleLuckyFill(request, env) {
     return json({ error: "ai_unavailable" }, 503, request);
   }
 
+  let body = {};
+  try {
+    body = await request.json();
+  } catch {
+    /* empty body is fine — default gender applies */
+  }
+
+  const gender = normalizeGender(body.gender);
+
   try {
     const result = await runChat(env, {
       system: "You generate silly birthday card form values and respond with JSON only.",
-      user: LUCKY_PROMPT,
+      user: buildLuckyPrompt(gender),
       max_tokens: 200,
       temperature: 0.9,
     });
