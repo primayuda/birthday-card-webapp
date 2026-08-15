@@ -10,7 +10,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "deploy:worker": "wrangler deploy --config workers/router/wrangler.jsonc"
+    "deploy:app": "npm run build && wrangler deploy --config workers/app/wrangler.jsonc",
+    "deploy:worker": "wrangler deploy --config workers/router/wrangler.jsonc",
+    "deploy:all": "npm run deploy:app && npm run deploy:worker"
   },
   "dependencies": {
     "@astrojs/mdx": "^7.0.5",

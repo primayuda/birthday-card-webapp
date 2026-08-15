@@ -1,0 +1,12 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "birthday-card-webapp",
+  "main": "src/index.js",
+  "compatibility_date": "2026-02-01",
+  "assets": {
+    "directory": "../../dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/", "/birthday-card-generator", "/birthday-card-generator/*"],
+    "html_handling": "none"
+  }
+}
