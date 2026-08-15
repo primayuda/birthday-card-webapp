@@ -151,9 +151,11 @@ function BirthdayCardItem({
                 <p className="text-center text-base leading-relaxed text-card-foreground sm:text-lg">
                   {card.message}
                 </p>
-                {card.messageSource === "template" && card.fallbackReason === "daily_limit" && (
+                {card.messageSource === "template" && (
                   <p className="mt-3 text-center text-xs text-muted-foreground">
-                    Classic message — AI daily limit reached.
+                    {card.fallbackReason === "daily_limit"
+                      ? "Classic message — AI daily limit reached."
+                      : "Classic message — AI unavailable."}
                   </p>
                 )}
               </div>

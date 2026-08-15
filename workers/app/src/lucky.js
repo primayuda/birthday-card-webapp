@@ -88,7 +88,7 @@ export async function handleLuckyFill(request, env) {
   if (methodResponse) return methodResponse;
 
   if (!env.AI) {
-    return json({ error: "ai_unavailable" }, 503);
+    return json({ error: "ai_unavailable" }, 503, request);
   }
 
   try {
@@ -102,15 +102,15 @@ export async function handleLuckyFill(request, env) {
     const payload = parseLuckyPayload(result.response);
     const fill = validateFill(payload);
     if (!fill) {
-      return json({ error: "invalid_response" }, 502);
+      return json({ error: "invalid_response" }, 502, request);
     }
 
-    return json({ fill, source: "ai" });
+    return json({ fill, source: "ai" }, 200, request);
   } catch (error) {
     if (isDailyLimitError(error)) {
-      return json({ error: "daily_limit" }, 429);
+      return json({ error: "daily_limit" }, 429, request);
     }
 
-    return json({ error: "ai_failed" }, 502);
+    return json({ error: "ai_failed" }, 502, request);
   }
 }

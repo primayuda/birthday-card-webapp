@@ -10,8 +10,8 @@ export default defineConfig({
   site: 'https://primayuda.dev',
   base: '/birthday-card-generator/',
   vite: {
-      plugins: [tailwindcss()],
-	},
+    plugins: [tailwindcss()],
+  },
 
   integrations: [react()],
 });

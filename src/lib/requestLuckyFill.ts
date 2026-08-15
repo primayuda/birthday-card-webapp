@@ -1,4 +1,5 @@
 import { getRandomLuckyFill, type LuckyFill } from "@/lib/luckyWords";
+import { getApiBase } from "@/lib/apiBase";
 
 export type LuckyFillSource = "ai" | "template";
 
@@ -8,7 +9,7 @@ export interface LuckyFillResult extends LuckyFill {
 
 export async function requestLuckyFill(): Promise<LuckyFillResult> {
   try {
-    const response = await fetch(`${import.meta.env.BASE_URL}api/lucky`, {
+    const response = await fetch(`${getApiBase()}api/lucky`, {
       method: "POST",
     });
 

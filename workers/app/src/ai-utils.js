@@ -7,10 +7,34 @@ export const LIMITS = {
   pluralNouns: 80,
 };
 
-export function json(data, status = 200) {
-  return Response.json(data, {
-    status,
-    headers: { "Content-Type": "application/json" },
+export function json(data, status = 200, request) {
+  const headers = { "Content-Type": "application/json" };
+  if (request) {
+    Object.assign(headers, corsHeaders(request));
+  }
+
+  return Response.json(data, { status, headers });
+}
+
+export function corsHeaders(request) {
+  const origin = request.headers.get("Origin");
+  if (!origin) return {};
+
+  return {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    Vary: "Origin",
+  };
+}
+
+export function corsPreflightResponse(request) {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      ...corsHeaders(request),
+      Allow: "POST, OPTIONS",
+    },
   });
 }
 
@@ -36,14 +60,11 @@ export async function runChat(env, { system, user, max_tokens = 200, temperature
 
 export function methodNotAllowed(request) {
   if (request.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: { Allow: "POST, OPTIONS" },
-    });
+    return corsPreflightResponse(request);
   }
 
   if (request.method !== "POST") {
-    return json({ error: "method_not_allowed" }, 405);
+    return json({ error: "method_not_allowed" }, 405, request);
   }
 
   return null;

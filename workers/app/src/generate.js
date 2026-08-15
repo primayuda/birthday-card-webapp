@@ -39,8 +39,28 @@ function validateInputs(body) {
 function cleanMessage(text) {
   return String(text ?? "")
     .trim()
+    .replace(/^```(?:text|markdown)?\s*/i, "")
+    .replace(/\s*```$/, "")
     .replace(/^["']|["']$/g, "")
     .slice(0, 500);
+}
+
+function extractMessage(raw) {
+  if (raw == null) return "";
+
+  if (typeof raw === "string") {
+    return cleanMessage(raw);
+  }
+
+  if (typeof raw === "object" && !Array.isArray(raw)) {
+    const nested =
+      raw.message ?? raw.text ?? raw.content ?? raw.response ?? raw.output;
+    if (typeof nested === "string") {
+      return cleanMessage(nested);
+    }
+  }
+
+  return "";
 }
 
 export async function handleGenerate(request, env) {
@@ -48,19 +68,19 @@ export async function handleGenerate(request, env) {
   if (methodResponse) return methodResponse;
 
   if (!env.AI) {
-    return json({ error: "ai_unavailable" }, 503);
+    return json({ error: "ai_unavailable" }, 503, request);
   }
 
   let body;
   try {
     body = await request.json();
   } catch {
-    return json({ error: "invalid_json" }, 400);
+    return json({ error: "invalid_json" }, 400, request);
   }
 
   const inputs = validateInputs(body);
   if (!inputs) {
-    return json({ error: "invalid_input" }, 400);
+    return json({ error: "invalid_input" }, 400, request);
   }
 
   try {
@@ -71,17 +91,17 @@ export async function handleGenerate(request, env) {
       temperature: 0.8,
     });
 
-    const message = cleanMessage(result.response);
+    const message = extractMessage(result.response);
     if (!message) {
-      return json({ error: "empty_response" }, 502);
+      return json({ error: "empty_response" }, 502, request);
     }
 
-    return json({ message, source: "ai" });
+    return json({ message, source: "ai" }, 200, request);
   } catch (error) {
     if (isDailyLimitError(error)) {
-      return json({ error: "daily_limit" }, 429);
+      return json({ error: "daily_limit" }, 429, request);
     }
 
-    return json({ error: "ai_failed" }, 502);
+    return json({ error: "ai_failed" }, 502, request);
   }
 }

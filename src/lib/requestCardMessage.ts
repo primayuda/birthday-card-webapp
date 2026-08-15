@@ -1,4 +1,5 @@
 import { generateMessage, type CardInputs } from "@/lib/messages";
+import { getApiBase } from "@/lib/apiBase";
 
 export type MessageSource = "ai" | "template";
 export type FallbackReason = "daily_limit" | "unavailable";
@@ -17,7 +18,7 @@ export async function requestCardMessage(
   let fallbackReason: FallbackReason = "unavailable";
 
   try {
-    const response = await fetch(`${import.meta.env.BASE_URL}api/generate`, {
+    const response = await fetch(`${getApiBase()}api/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(inputs),
