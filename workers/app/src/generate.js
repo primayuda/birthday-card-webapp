@@ -1,27 +1,10 @@
-const MODEL = "@cf/meta/llama-3.2-3b-instruct";
-
-const LIMITS = {
-  name: 50,
-  hobby: 80,
-  adjective: 40,
-  pluralNouns: 80,
-};
-
-function json(data, status = 200) {
-  return Response.json(data, {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-function isDailyLimitError(error) {
-  const message = String(error?.message ?? error);
-  return (
-    message.includes("10,000") ||
-    message.includes("3036") ||
-    message.includes("daily free allocation")
-  );
-}
+import {
+  LIMITS,
+  json,
+  isDailyLimitError,
+  methodNotAllowed,
+  runChat,
+} from "./ai-utils.js";
 
 function buildPrompt(inputs) {
   return `Write one funny, family-friendly birthday card message (2-4 sentences, under 320 characters).
@@ -61,18 +44,8 @@ function cleanMessage(text) {
 }
 
 export async function handleGenerate(request, env) {
-  if (request.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        Allow: "POST, OPTIONS",
-      },
-    });
-  }
-
-  if (request.method !== "POST") {
-    return json({ error: "method_not_allowed" }, 405);
-  }
+  const methodResponse = methodNotAllowed(request);
+  if (methodResponse) return methodResponse;
 
   if (!env.AI) {
     return json({ error: "ai_unavailable" }, 503);
@@ -91,15 +64,9 @@ export async function handleGenerate(request, env) {
   }
 
   try {
-    const result = await env.AI.run(MODEL, {
-      messages: [
-        {
-          role: "system",
-          content:
-            "You write short, witty, family-friendly birthday card messages.",
-        },
-        { role: "user", content: buildPrompt(inputs) },
-      ],
+    const result = await runChat(env, {
+      system: "You write short, witty, family-friendly birthday card messages.",
+      user: buildPrompt(inputs),
       max_tokens: 200,
       temperature: 0.8,
     });

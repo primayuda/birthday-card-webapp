@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { normalizeInputs, type CardInputs } from "@/lib/messages";
 import { requestCardMessage } from "@/lib/requestCardMessage";
-import { getRandomLuckyFill } from "@/lib/luckyWords";
+import { requestLuckyFill } from "@/lib/requestLuckyFill";
 import { getRandomBirthdayImage } from "@/lib/birthdayImages";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +53,7 @@ export function BirthdayCardGenerator() {
   const [cards, setCards] = useState<GeneratedCard[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLuckyLoading, setIsLuckyLoading] = useState(false);
   const [shufflingId, setShufflingId] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -142,16 +143,23 @@ export function BirthdayCardGenerator() {
     }
   }
 
-  function handleFeelingLucky() {
-    const fill = getRandomLuckyFill();
+  async function handleFeelingLucky() {
+    if (isLuckyLoading || isGenerating) return;
 
-    if (!name.trim()) setName(fill.name);
-    if (!age.trim()) setAge(fill.age);
-    if (!hobby.trim()) setHobby(fill.hobby);
-    if (!adjective.trim()) setAdjective(fill.adjective);
-    if (!pluralNouns.trim()) setPluralNouns(fill.pluralNouns);
-
+    setIsLuckyLoading(true);
     setErrors({});
+
+    try {
+      const fill = await requestLuckyFill();
+
+      if (!name.trim()) setName(fill.name);
+      if (!age.trim()) setAge(fill.age);
+      if (!hobby.trim()) setHobby(fill.hobby);
+      if (!adjective.trim()) setAdjective(fill.adjective);
+      if (!pluralNouns.trim()) setPluralNouns(fill.pluralNouns);
+    } finally {
+      setIsLuckyLoading(false);
+    }
   }
 
   return (
@@ -269,17 +277,26 @@ export function BirthdayCardGenerator() {
                   type="button"
                   variant="outline"
                   size="lg"
-                  disabled={isGenerating}
+                  disabled={isGenerating || isLuckyLoading}
                   className="touch-manipulation min-h-12 flex-1 border-border bg-secondary/50 hover:bg-secondary dark:bg-secondary/30 dark:hover:bg-secondary/50"
                   onClick={handleFeelingLucky}
                 >
-                  <Clover className="size-4 shrink-0" aria-hidden="true" />
-                  I&apos;m feeling lucky
+                  {isLuckyLoading ? (
+                    <>
+                      <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden="true" />
+                      <span>Getting lucky…</span>
+                    </>
+                  ) : (
+                    <>
+                      <Clover className="size-4 shrink-0" aria-hidden="true" />
+                      I&apos;m feeling lucky
+                    </>
+                  )}
                 </Button>
                 <Button
                   type="submit"
                   size="lg"
-                  disabled={isGenerating}
+                  disabled={isGenerating || isLuckyLoading}
                   className="touch-manipulation min-h-12 flex-1 bg-linear-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700"
                 >
                   {isGenerating ? (
