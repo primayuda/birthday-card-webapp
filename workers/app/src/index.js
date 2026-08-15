@@ -1,3 +1,5 @@
+import { handleGenerate } from "./generate.js";
+
 const BASE = "/birthday-card-generator";
 
 export default {
@@ -9,7 +11,13 @@ export default {
     }
 
     if (url.pathname.startsWith(`${BASE}/`)) {
-      let assetPath = url.pathname.slice(BASE.length) || "/";
+      const subPath = url.pathname.slice(BASE.length) || "/";
+
+      if (subPath === "/api/generate") {
+        return handleGenerate(request, env);
+      }
+
+      let assetPath = subPath;
       if (assetPath.endsWith("/")) {
         assetPath = "/index.html";
       }

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Sparkles, Cake, Clover } from "lucide-react";
+import { Sparkles, Cake, Clover, Loader2 } from "lucide-react";
 
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
@@ -16,22 +16,30 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { generateMessage, normalizeInputs, type CardInputs } from "@/lib/messages";
+import { normalizeInputs, type CardInputs } from "@/lib/messages";
+import { requestCardMessage } from "@/lib/requestCardMessage";
 import { getRandomLuckyFill } from "@/lib/luckyWords";
 import { getRandomBirthdayImage } from "@/lib/birthdayImages";
 import { cn } from "@/lib/utils";
 
-function createCard(inputs: CardInputs, excludeIndex = -1): GeneratedCard {
-  const { text, index } = generateMessage(inputs, excludeIndex);
+async function createCard(
+  inputs: CardInputs,
+  excludeIndex = -1,
+): Promise<GeneratedCard> {
+  const { message, templateIndex, source, fallbackReason } =
+    await requestCardMessage(inputs, excludeIndex);
   const image = getRandomBirthdayImage();
+
   return {
     id: crypto.randomUUID(),
-    message: text,
+    message,
     recipientName: inputs.name,
-    templateIndex: index,
+    templateIndex,
     inputs,
     imageUrl: image.url,
     imageAlt: image.alt,
+    messageSource: source,
+    fallbackReason,
   };
 }
 
@@ -44,6 +52,8 @@ export function BirthdayCardGenerator() {
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [cards, setCards] = useState<GeneratedCard[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [shufflingId, setShufflingId] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
   const inputClassName =
@@ -65,33 +75,61 @@ export function BirthdayCardGenerator() {
     return normalizeInputs(name, parsedAge, hobby, adjective, pluralNouns);
   }
 
-  function addCard(inputs: CardInputs) {
-    setCards((prev) => [createCard(inputs), ...prev]);
+  async function addCard(inputs: CardInputs) {
+    setIsGenerating(true);
     setCopiedId(null);
 
-    requestAnimationFrame(() => {
-      if (window.matchMedia("(max-width: 1023px)").matches) {
-        previewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    });
+    try {
+      const card = await createCard(inputs);
+      setCards((prev) => [card, ...prev]);
+
+      requestAnimationFrame(() => {
+        if (window.matchMedia("(max-width: 1023px)").matches) {
+          previewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (isGenerating) return;
+
     const inputs = validate();
-    if (inputs) addCard(inputs);
+    if (inputs) await addCard(inputs);
   }
 
-  function handleShuffle(cardId: string) {
-    setCards((prev) =>
-      prev.map((card) => {
-        if (card.id !== cardId) return card;
+  async function handleShuffle(cardId: string) {
+    if (shufflingId) return;
 
-        const { text, index } = generateMessage(card.inputs, card.templateIndex);
-        return { ...card, message: text, templateIndex: index };
-      })
-    );
+    const card = cards.find((item) => item.id === cardId);
+    if (!card) return;
+
+    setShufflingId(cardId);
     setCopiedId(null);
+
+    try {
+      const excludeIndex =
+        card.messageSource === "template" ? card.templateIndex : -1;
+      const next = await createCard(card.inputs, excludeIndex);
+      setCards((prev) =>
+        prev.map((item) =>
+          item.id === cardId
+            ? {
+                ...item,
+                message: next.message,
+                templateIndex: next.templateIndex,
+                messageSource: next.messageSource,
+                fallbackReason: next.fallbackReason,
+              }
+            : item,
+        ),
+      );
+    } finally {
+      setShufflingId(null);
+    }
   }
 
   async function handleCopy(cardId: string, message: string) {
@@ -134,8 +172,8 @@ export function BirthdayCardGenerator() {
             Birthday Bash Card Maker
           </h1>
           <p className="mx-auto max-w-xl text-sm text-muted-foreground sm:text-base">
-            Fill in all five fields — each new message adds another card on top,
-            with older ones stacked below.
+            Fill in all five fields — AI writes a fresh message for each card,
+            with classic templates as backup.
           </p>
         </div>
       </header>
@@ -231,6 +269,7 @@ export function BirthdayCardGenerator() {
                   type="button"
                   variant="outline"
                   size="lg"
+                  disabled={isGenerating}
                   className="touch-manipulation min-h-12 flex-1 border-border bg-secondary/50 hover:bg-secondary dark:bg-secondary/30 dark:hover:bg-secondary/50"
                   onClick={handleFeelingLucky}
                 >
@@ -240,11 +279,21 @@ export function BirthdayCardGenerator() {
                 <Button
                   type="submit"
                   size="lg"
+                  disabled={isGenerating}
                   className="touch-manipulation min-h-12 flex-1 bg-linear-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700"
                 >
-                  <Sparkles className="size-4 shrink-0" aria-hidden="true" />
-                  <span className="sm:hidden">Generate card</span>
-                  <span className="hidden sm:inline">Generate funny message</span>
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden="true" />
+                      <span>Generating…</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="size-4 shrink-0" aria-hidden="true" />
+                      <span className="sm:hidden">Generate card</span>
+                      <span className="hidden sm:inline">Generate funny message</span>
+                    </>
+                  )}
                 </Button>
               </div>
             </form>
@@ -255,6 +304,7 @@ export function BirthdayCardGenerator() {
           ref={previewRef}
           cards={cards}
           copiedId={copiedId}
+          shufflingId={shufflingId}
           onCopy={handleCopy}
           onShuffle={handleShuffle}
         />

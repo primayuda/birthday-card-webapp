@@ -4,6 +4,7 @@ import { Copy, Check, RefreshCw } from "lucide-react";
 import { PlayBirthdaySongButton } from "@/components/PlayBirthdaySongButton";
 import { Button } from "@/components/ui/button";
 import type { CardInputs } from "@/lib/messages";
+import type { MessageSource, FallbackReason } from "@/lib/requestCardMessage";
 import { BIRTHDAY_IMAGES } from "@/lib/birthdayImages";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +16,8 @@ export interface GeneratedCard {
   inputs: CardInputs;
   imageUrl: string;
   imageAlt: string;
+  messageSource: MessageSource;
+  fallbackReason?: FallbackReason;
 }
 
 interface BirthdayCardItemProps {
@@ -23,6 +26,7 @@ interface BirthdayCardItemProps {
   onCopy: () => void;
   onShuffle: () => void;
   isNewest?: boolean;
+  isShuffling?: boolean;
 }
 
 function BirthdayCardItem({
@@ -31,6 +35,7 @@ function BirthdayCardItem({
   onCopy,
   onShuffle,
   isNewest,
+  isShuffling,
 }: BirthdayCardItemProps) {
   const [imageError, setImageError] = useState(false);
   const fallbackImage = BIRTHDAY_IMAGES[0];
@@ -64,10 +69,14 @@ function BirthdayCardItem({
           variant="ghost"
           size="sm"
           onClick={onShuffle}
+          disabled={isShuffling}
           className="touch-manipulation min-h-11 w-full sm:min-h-8 sm:w-auto"
         >
-          <RefreshCw className="size-4 shrink-0" aria-hidden="true" />
-          <span className="truncate">Shuffle</span>
+          <RefreshCw
+            className={cn("size-4 shrink-0", isShuffling && "animate-spin")}
+            aria-hidden="true"
+          />
+          <span className="truncate">{isShuffling ? "Shuffling…" : "Shuffle"}</span>
         </Button>
       </div>
 
@@ -142,6 +151,11 @@ function BirthdayCardItem({
                 <p className="text-center text-base leading-relaxed text-card-foreground sm:text-lg">
                   {card.message}
                 </p>
+                {card.messageSource === "template" && card.fallbackReason === "daily_limit" && (
+                  <p className="mt-3 text-center text-xs text-muted-foreground">
+                    Classic message — AI daily limit reached.
+                  </p>
+                )}
               </div>
 
               <div className="mt-6 border-t border-dashed border-border pt-5 text-center sm:mt-8 sm:pt-6">
@@ -164,6 +178,7 @@ function BirthdayCardItem({
 interface BirthdayCardPreviewProps {
   cards: GeneratedCard[];
   copiedId: string | null;
+  shufflingId: string | null;
   onCopy: (id: string, message: string) => void;
   onShuffle: (id: string) => void;
   className?: string;
@@ -173,7 +188,7 @@ export const BirthdayCardPreview = forwardRef<
   HTMLDivElement,
   BirthdayCardPreviewProps
 >(function BirthdayCardPreview(
-  { cards, copiedId, onCopy, onShuffle, className },
+  { cards, copiedId, shufflingId, onCopy, onShuffle, className },
   ref
 ) {
   return (
@@ -216,6 +231,7 @@ export const BirthdayCardPreview = forwardRef<
               card={card}
               isNewest={index === 0}
               copied={copiedId === card.id}
+              isShuffling={shufflingId === card.id}
               onCopy={() => onCopy(card.id, card.message)}
               onShuffle={() => onShuffle(card.id)}
             />
