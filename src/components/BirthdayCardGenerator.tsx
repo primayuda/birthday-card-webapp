@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { normalizeInputs, type CardInputs } from "@/lib/messages";
 import { requestCardMessage } from "@/lib/requestCardMessage";
 import { requestLuckyFill } from "@/lib/requestLuckyFill";
-import { getRandomBirthdayImage } from "@/lib/birthdayImages";
+import { requestBirthdayImage } from "@/lib/requestBirthdayImage";
 import { cn } from "@/lib/utils";
 
 async function createCard(
@@ -28,7 +28,7 @@ async function createCard(
 ): Promise<GeneratedCard> {
   const { message, templateIndex, source, fallbackReason } =
     await requestCardMessage(inputs, excludeIndex);
-  const image = getRandomBirthdayImage();
+  const image = await requestBirthdayImage();
 
   return {
     id: crypto.randomUUID(),
@@ -38,6 +38,8 @@ async function createCard(
     inputs,
     imageUrl: image.url,
     imageAlt: image.alt,
+    imageSource: image.source,
+    imageAttribution: image.attribution,
     messageSource: source,
     fallbackReason,
   };

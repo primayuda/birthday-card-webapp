@@ -22,18 +22,18 @@ export function corsHeaders(request) {
 
   return {
     "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     Vary: "Origin",
   };
 }
 
-export function corsPreflightResponse(request) {
+export function corsPreflightResponse(request, allow = "POST, OPTIONS") {
   return new Response(null, {
     status: 204,
     headers: {
       ...corsHeaders(request),
-      Allow: "POST, OPTIONS",
+      Allow: allow,
     },
   });
 }

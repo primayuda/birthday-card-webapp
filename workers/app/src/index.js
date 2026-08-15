@@ -1,4 +1,5 @@
 import { handleGenerate } from "./generate.js";
+import { handleImage } from "./image.js";
 import { handleLuckyFill } from "./lucky.js";
 
 const BASE = "/birthday-card-generator";
@@ -20,6 +21,10 @@ export default {
 
       if (subPath === "/api/lucky") {
         return handleLuckyFill(request, env);
+      }
+
+      if (subPath === "/api/image") {
+        return handleImage(request, env);
       }
 
       let assetPath = subPath;

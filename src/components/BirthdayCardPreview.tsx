@@ -5,7 +5,7 @@ import { PlayBirthdaySongButton } from "@/components/PlayBirthdaySongButton";
 import { Button } from "@/components/ui/button";
 import type { CardInputs } from "@/lib/messages";
 import type { MessageSource, FallbackReason } from "@/lib/requestCardMessage";
-import { BIRTHDAY_IMAGES } from "@/lib/birthdayImages";
+import { BIRTHDAY_IMAGES, type ImageAttribution, type ImageSource } from "@/lib/birthdayImages";
 import { cn } from "@/lib/utils";
 
 export interface GeneratedCard {
@@ -16,6 +16,8 @@ export interface GeneratedCard {
   inputs: CardInputs;
   imageUrl: string;
   imageAlt: string;
+  imageSource: ImageSource;
+  imageAttribution?: ImageAttribution;
   messageSource: MessageSource;
   fallbackReason?: FallbackReason;
 }
@@ -88,16 +90,42 @@ function BirthdayCardItem({
           )}
         >
           <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-inner">
-            <img
-              src={imageError ? fallbackImage.url : card.imageUrl}
-              alt={imageError ? fallbackImage.alt : card.imageAlt}
-              width={640}
-              height={240}
-              loading="lazy"
-              decoding="async"
-              onError={() => setImageError(true)}
-              className="h-32 w-full object-cover sm:h-36 dark:brightness-95"
-            />
+            <div className="relative">
+              <img
+                src={imageError ? fallbackImage.url : card.imageUrl}
+                alt={imageError ? fallbackImage.alt : card.imageAlt}
+                width={640}
+                height={240}
+                loading="lazy"
+                decoding="async"
+                onError={() => setImageError(true)}
+                className="h-32 w-full object-cover sm:h-36 dark:brightness-95"
+              />
+              {!imageError &&
+                card.imageSource === "unsplash" &&
+                card.imageAttribution && (
+                  <p className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-2 py-1.5 text-[10px] leading-snug text-white/95 sm:text-xs">
+                    Photo by{" "}
+                    <a
+                      href={card.imageAttribution.photographerUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline underline-offset-2"
+                    >
+                      {card.imageAttribution.photographerName}
+                    </a>{" "}
+                    on{" "}
+                    <a
+                      href="https://unsplash.com/?utm_source=birthday_card_webapp&utm_medium=referral"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline underline-offset-2"
+                    >
+                      Unsplash
+                    </a>
+                  </p>
+                )}
+            </div>
 
             <div className="relative min-h-[260px] sm:min-h-[340px]">
               <div

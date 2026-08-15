@@ -1,3 +1,11 @@
+export type ImageSource = "unsplash" | "local";
+
+export interface ImageAttribution {
+  photographerName: string;
+  photographerUrl: string;
+  photoUrl: string;
+}
+
 export interface BirthdayImage {
   url: string;
   alt: string;
