@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Sparkles, Cake } from "lucide-react";
+import { useRef, useState } from "react";
+import { Sparkles, Cake, Clover } from "lucide-react";
 
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   BirthdayCardPreview,
   type GeneratedCard,
@@ -16,16 +17,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { generateMessage, normalizeInputs, type CardInputs } from "@/lib/messages";
+import { getRandomLuckyFill } from "@/lib/luckyWords";
+import { getRandomBirthdayImage } from "@/lib/birthdayImages";
 import { cn } from "@/lib/utils";
 
 function createCard(inputs: CardInputs, excludeIndex = -1): GeneratedCard {
   const { text, index } = generateMessage(inputs, excludeIndex);
+  const image = getRandomBirthdayImage();
   return {
     id: crypto.randomUUID(),
     message: text,
     recipientName: inputs.name,
     templateIndex: index,
     inputs,
+    imageUrl: image.url,
+    imageAlt: image.alt,
   };
 }
 
@@ -33,9 +39,15 @@ export function BirthdayCardGenerator() {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [hobby, setHobby] = useState("");
+  const [adjective, setAdjective] = useState("");
+  const [pluralNouns, setPluralNouns] = useState("");
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [cards, setCards] = useState<GeneratedCard[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  const inputClassName =
+    "h-11 text-base md:h-8 md:text-sm";
 
   function validate(): CardInputs | null {
     const nextErrors: Record<string, boolean> = {};
@@ -44,16 +56,24 @@ export function BirthdayCardGenerator() {
     if (!name.trim()) nextErrors.name = true;
     if (!age || parsedAge < 1 || parsedAge > 120) nextErrors.age = true;
     if (!hobby.trim()) nextErrors.hobby = true;
+    if (!adjective.trim()) nextErrors.adjective = true;
+    if (!pluralNouns.trim()) nextErrors.pluralNouns = true;
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return null;
 
-    return normalizeInputs(name, parsedAge, hobby);
+    return normalizeInputs(name, parsedAge, hobby, adjective, pluralNouns);
   }
 
   function addCard(inputs: CardInputs) {
     setCards((prev) => [createCard(inputs), ...prev]);
     setCopiedId(null);
+
+    requestAnimationFrame(() => {
+      if (window.matchMedia("(max-width: 1023px)").matches) {
+        previewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -84,30 +104,44 @@ export function BirthdayCardGenerator() {
     }
   }
 
+  function handleFeelingLucky() {
+    const fill = getRandomLuckyFill();
+
+    if (!name.trim()) setName(fill.name);
+    if (!age.trim()) setAge(fill.age);
+    if (!hobby.trim()) setHobby(fill.hobby);
+    if (!adjective.trim()) setAdjective(fill.adjective);
+    if (!pluralNouns.trim()) setPluralNouns(fill.pluralNouns);
+
+    setErrors({});
+  }
+
   return (
-    <div className="relative mx-auto w-full max-w-6xl space-y-8">
-      <header className="space-y-3 text-center">
+    <div className="relative mx-auto w-full max-w-6xl space-y-6 sm:space-y-8">
+      <ThemeToggle className="fixed top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))] z-20 shadow-sm" />
+
+      <header className="space-y-3 px-1 pt-12 text-center sm:pt-0">
         <Cake
-          className="mx-auto size-8 text-blue-600"
+          className="mx-auto size-8 text-primary sm:size-9"
           aria-hidden="true"
           strokeWidth={1.75}
         />
         <div className="space-y-2">
-          <p className="text-sm font-medium tracking-widest text-blue-600/80 uppercase">
+          <p className="text-xs font-medium tracking-widest text-primary/80 uppercase sm:text-sm">
             Celebrate &amp; Create
           </p>
-          <h1 className="font-heading text-4xl font-bold tracking-tight bg-linear-to-r from-sky-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent sm:text-5xl">
+          <h1 className="font-heading text-3xl leading-tight font-bold tracking-tight bg-linear-to-r from-sky-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent sm:text-4xl lg:text-5xl dark:from-sky-400 dark:via-blue-400 dark:to-indigo-300">
             Birthday Bash Card Maker
           </h1>
-          <p className="mx-auto max-w-xl text-muted-foreground">
-            Pop in a name, age, and hobby — each new message adds another card
-            on top, with older ones stacked below.
+          <p className="mx-auto max-w-xl text-sm text-muted-foreground sm:text-base">
+            Fill in all five fields — each new message adds another card on top,
+            with older ones stacked below.
           </p>
         </div>
       </header>
 
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-10">
-        <Card className="border-blue-200/60 bg-card/90 shadow-lg shadow-blue-500/10 backdrop-blur-sm lg:sticky lg:top-8">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-10">
+        <Card className="border-border bg-card/95 shadow-lg shadow-blue-500/10 backdrop-blur-sm lg:sticky lg:top-8 dark:shadow-black/25">
           <CardHeader>
             <CardTitle>Card details</CardTitle>
             <CardDescription>
@@ -117,7 +151,7 @@ export function BirthdayCardGenerator() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               <div className="space-y-2">
-                <Label htmlFor="name">Their name</Label>
+                <Label htmlFor="name">Name</Label>
                 <Input
                   id="name"
                   name="name"
@@ -127,12 +161,12 @@ export function BirthdayCardGenerator() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   aria-invalid={errors.name || undefined}
-                  className={cn(errors.name && "border-destructive")}
+                  className={cn(inputClassName, errors.name && "border-destructive")}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="age">Age they&apos;re turning</Label>
+                <Label htmlFor="age">Age</Label>
                 <Input
                   id="age"
                   name="age"
@@ -143,38 +177,82 @@ export function BirthdayCardGenerator() {
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
                   aria-invalid={errors.age || undefined}
-                  className={cn(errors.age && "border-destructive")}
+                  className={cn(inputClassName, errors.age && "border-destructive")}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="hobby">Favorite hobby</Label>
+                <Label htmlFor="hobby">Hobby</Label>
                 <Input
                   id="hobby"
                   name="hobby"
-                  placeholder="e.g. baking, hiking, gaming"
+                  placeholder="e.g. baking"
                   autoComplete="off"
                   maxLength={80}
                   value={hobby}
                   onChange={(e) => setHobby(e.target.value)}
                   aria-invalid={errors.hobby || undefined}
-                  className={cn(errors.hobby && "border-destructive")}
+                  className={cn(inputClassName, errors.hobby && "border-destructive")}
                 />
               </div>
 
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full bg-linear-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700"
-              >
-                <Sparkles className="size-4" aria-hidden="true" />
-                Generate funny message
-              </Button>
+              <div className="space-y-2">
+                <Label htmlFor="adjective">Adjective</Label>
+                <Input
+                  id="adjective"
+                  name="adjective"
+                  placeholder="e.g. spectacular"
+                  autoComplete="off"
+                  maxLength={40}
+                  value={adjective}
+                  onChange={(e) => setAdjective(e.target.value)}
+                  aria-invalid={errors.adjective || undefined}
+                  className={cn(inputClassName, errors.adjective && "border-destructive")}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="plural-nouns">Plural nouns</Label>
+                <Input
+                  id="plural-nouns"
+                  name="pluralNouns"
+                  placeholder="e.g. puppies, rainbows"
+                  autoComplete="off"
+                  maxLength={80}
+                  value={pluralNouns}
+                  onChange={(e) => setPluralNouns(e.target.value)}
+                  aria-invalid={errors.pluralNouns || undefined}
+                  className={cn(inputClassName, errors.pluralNouns && "border-destructive")}
+                />
+              </div>
+
+              <div className="flex flex-col gap-2.5 pt-1 sm:flex-row">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  className="touch-manipulation min-h-12 flex-1 border-border bg-secondary/50 hover:bg-secondary dark:bg-secondary/30 dark:hover:bg-secondary/50"
+                  onClick={handleFeelingLucky}
+                >
+                  <Clover className="size-4 shrink-0" aria-hidden="true" />
+                  I&apos;m feeling lucky
+                </Button>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="touch-manipulation min-h-12 flex-1 bg-linear-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700"
+                >
+                  <Sparkles className="size-4 shrink-0" aria-hidden="true" />
+                  <span className="sm:hidden">Generate card</span>
+                  <span className="hidden sm:inline">Generate funny message</span>
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>
 
         <BirthdayCardPreview
+          ref={previewRef}
           cards={cards}
           copiedId={copiedId}
           onCopy={handleCopy}

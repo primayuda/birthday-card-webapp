@@ -8,14 +8,25 @@ interface Props {
 const { title } = Astro.props;
 ---
 
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#eff6ff" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <script is:inline>
+      (function () {
+        var key = "birthday-card-theme";
+        var stored = localStorage.getItem(key);
+        var theme = stored === "light" || stored === "dark" ? stored : "dark";
+        if (theme === "dark") document.documentElement.classList.add("dark");
+        else document.documentElement.classList.remove("dark");
+      })();
+    </script>
   </head>
   <body>
     <slot />
