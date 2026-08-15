@@ -3,34 +3,37 @@ export interface BirthdayImage {
   alt: string;
 }
 
+const withBase = (path: string) =>
+  `${import.meta.env.BASE_URL}${path.replace(/^\//, "")}`;
+
 /** Local birthday images bundled in /public/birthday */
 export const BIRTHDAY_IMAGES: BirthdayImage[] = [
   {
-    url: "/birthday/cake-candles.jpg",
+    url: withBase("/birthday/cake-candles.jpg"),
     alt: "Chocolate birthday cake with lit candles",
   },
   {
-    url: "/birthday/balloons.jpg",
+    url: withBase("/birthday/balloons.jpg"),
     alt: "Colorful festive balloons",
   },
   {
-    url: "/birthday/balloons-cluster.jpg",
+    url: withBase("/birthday/balloons-cluster.jpg"),
     alt: "Cluster of party balloons",
   },
   {
-    url: "/birthday/gifts.jpg",
+    url: withBase("/birthday/gifts.jpg"),
     alt: "Wrapped birthday gifts with ribbon",
   },
   {
-    url: "/birthday/party-table.jpg",
+    url: withBase("/birthday/party-table.jpg"),
     alt: "Party table with decorations and treats",
   },
   {
-    url: "/birthday/confetti.jpg",
+    url: withBase("/birthday/confetti.jpg"),
     alt: "Confetti falling at a celebration",
   },
   {
-    url: "/birthday/dinner-party.jpg",
+    url: withBase("/birthday/dinner-party.jpg"),
     alt: "Festive table setting with candles",
   },
 ];

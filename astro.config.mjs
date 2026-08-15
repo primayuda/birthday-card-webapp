@@ -7,6 +7,8 @@ import react from '@astrojs/react';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://primayuda.dev',
+  base: '/birthday-card-generator/',
   vite: {
       plugins: [tailwindcss()],
 	},
