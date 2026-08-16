@@ -1,9 +1,9 @@
 # Birthday Card Webapp — Session Resume
 
-**Last updated:** 2026-08-15  
+**Last updated:** 2026-08-16  
 **Live URL:** https://primayuda.dev/birthday-card-generator/  
 **Repo:** https://github.com/primayuda/birthday-card-webapp  
-**Latest commit:** `6c4a6b9` — Add gender selection for AI messages and lucky fill.
+**Latest commit:** `d7a261e` — Add session resume doc for Cursor with safe gitignore rules.
 
 To resume in Cursor, say: **"Read `.cursor/SESSION.md` and continue where we left off."**
 
@@ -97,6 +97,7 @@ CI: `.github/workflows/deploy.yml` on push to `main`.
 - [x] Unsplash random card images + photographer attribution
 - [x] Gender selection: Male / Female / Prefer not to disclose
 - [x] npm scripts: `dev:background`, `dev:stop`, `dev:status`, `dev:logs`
+- [x] Session resume doc: `.cursor/SESSION.md` (tracked on GitHub)
 
 ---
 
@@ -121,12 +122,12 @@ CI: `.github/workflows/deploy.yml` on push to `main`.
 ## Recent commits
 
 ```
+d7a261e Add session resume doc for Cursor with safe gitignore rules.
 6c4a6b9 Add gender selection for AI messages and lucky fill.
 085f4e1 Add Unsplash API for random birthday card images.
 7a4e9b7 Fix AI card messages in local dev and harden generate parsing.
 65e1383 Fix lucky-fill parsing when Workers AI returns JSON objects.
 72b7f8c Use Workers AI for I'm feeling lucky form fills.
-6522595 Add Workers AI message generation with template fallback.
 ```
 
 ---
