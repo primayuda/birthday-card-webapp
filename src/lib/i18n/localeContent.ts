@@ -10,6 +10,12 @@ const EN_MARKERS =
 
 const EN_TITLE_CASE = /\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b/;
 
+export function messageUsesRecipientName(message: string, name: string): boolean {
+  const trimmed = name.trim();
+  if (!trimmed) return true;
+  return message.toLowerCase().includes(trimmed.toLowerCase());
+}
+
 export function looksLikeEnglish(text: string): boolean {
   const trimmed = text.trim();
   if (!trimmed) return false;

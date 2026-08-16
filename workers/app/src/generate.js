@@ -5,7 +5,7 @@ import {
   methodNotAllowed,
   runChat,
 } from "./ai-utils.js";
-import { genderInstruction, normalizeGender } from "./gender.js";
+import { messageGenderInstruction, normalizeGender } from "./gender.js";
 import {
   messageLanguageInstruction,
   messageSystemPrompt,
@@ -21,7 +21,7 @@ WAJIB masukkan SEMUA detail ini secara natural:
 - Hobi: ${inputs.hobby}
 - Kata sifat: ${inputs.adjective}
 - Kata benda jamak: ${inputs.pluralNouns}
-- ${genderInstruction(inputs.gender, inputs.locale)}
+- ${messageGenderInstruction(inputs.gender, inputs.locale, inputs.name)}
 - ${messageLanguageInstruction(inputs.locale)}
 
 Nada: playful dan witty. Output HANYA teks pesan, tanpa tanda kutip atau label.`;
@@ -34,7 +34,7 @@ Must naturally include ALL of these details:
 - Hobby: ${inputs.hobby}
 - Adjective: ${inputs.adjective}
 - Plural nouns: ${inputs.pluralNouns}
-- ${genderInstruction(inputs.gender, inputs.locale)}
+- ${messageGenderInstruction(inputs.gender, inputs.locale, inputs.name)}
 - ${messageLanguageInstruction(inputs.locale)}
 
 Tone: playful and witty. Output ONLY the message text, no quotes or labels.`;

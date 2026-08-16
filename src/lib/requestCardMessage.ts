@@ -1,6 +1,6 @@
 import { generateMessage, type CardInputs } from "@/lib/messages";
 import { getApiBase } from "@/lib/apiBase";
-import { looksLikeEnglish } from "@/lib/i18n/localeContent";
+import { looksLikeEnglish, messageUsesRecipientName } from "@/lib/i18n/localeContent";
 
 export type MessageSource = "ai" | "template";
 export type FallbackReason = "daily_limit" | "unavailable";
@@ -30,8 +30,12 @@ export async function requestCardMessage(
     } else if (response.ok) {
       const data = (await response.json()) as { message?: string; source?: string };
       if (data.message) {
-        if (inputs.locale === "id" && looksLikeEnglish(data.message)) {
-          /* AI ignored locale — fall through to Indonesian templates */
+        const wrongLocale =
+          inputs.locale === "id" && looksLikeEnglish(data.message);
+        const wrongName = !messageUsesRecipientName(data.message, inputs.name);
+
+        if (wrongLocale || wrongName) {
+          /* AI ignored locale or substituted the recipient name — use templates */
         } else {
           return {
             message: data.message,

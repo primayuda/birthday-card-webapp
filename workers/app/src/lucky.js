@@ -5,7 +5,7 @@ import {
   methodNotAllowed,
   runChat,
 } from "./ai-utils.js";
-import { genderInstruction, normalizeGender } from "./gender.js";
+import { luckyGenderInstruction, normalizeGender } from "./gender.js";
 import {
   luckyLanguageInstruction,
   luckyPromptExample,
@@ -29,7 +29,7 @@ Aturan:
 - adjective: frasa kata sifat lucu, maks 40 karakter, bahasa Indonesia
 - pluralNouns: kata benda jamak lucu, maks 80 karakter, bahasa Indonesia
 - Whimsical dan absurd tapi ramah keluarga
-- ${genderInstruction(gender, locale)}
+- ${luckyGenderInstruction(gender, locale)}
 - ${luckyLanguageInstruction(locale)}`;
   }
 
@@ -44,7 +44,7 @@ Rules:
 - adjective: funny adjective phrase, max 40 characters
 - pluralNouns: funny plural nouns, max 80 characters
 - Be whimsical and absurd but family-friendly
-- ${genderInstruction(gender, locale)}
+- ${luckyGenderInstruction(gender, locale)}
 - ${luckyLanguageInstruction(locale)}`;
 }
 
