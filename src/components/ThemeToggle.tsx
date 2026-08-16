@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import {
   getPreferredTheme,
   setTheme,
@@ -14,6 +15,7 @@ interface ThemeToggleProps {
 }
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
+  const { t } = useLocale();
   const [theme, setThemeState] = useState<Theme>("dark");
 
   useEffect(() => {
@@ -36,17 +38,19 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
         "touch-manipulation border-border bg-card/90 backdrop-blur-sm min-h-11 px-3 sm:min-h-8",
         className
       )}
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={
+        theme === "dark" ? t("theme.switchToLight") : t("theme.switchToDark")
+      }
     >
       {theme === "dark" ? (
         <>
           <Sun className="size-4 shrink-0" aria-hidden="true" />
-          <span className="hidden sm:inline">Light mode</span>
+          <span className="hidden sm:inline">{t("theme.light")}</span>
         </>
       ) : (
         <>
           <Moon className="size-4 shrink-0" aria-hidden="true" />
-          <span className="hidden sm:inline">Dark mode</span>
+          <span className="hidden sm:inline">{t("theme.dark")}</span>
         </>
       )}
     </Button>

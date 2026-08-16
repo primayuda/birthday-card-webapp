@@ -6,8 +6,33 @@ import {
   runChat,
 } from "./ai-utils.js";
 import { genderInstruction, normalizeGender } from "./gender.js";
+import {
+  luckyLanguageInstruction,
+  luckyPromptExample,
+  luckySystemPrompt,
+  normalizeLocale,
+} from "./language.js";
 
-function buildLuckyPrompt(gender) {
+function buildLuckyPrompt(gender, locale) {
+  const example = luckyPromptExample(locale);
+  const exampleBlock = example ? `\n${example}\n` : "";
+
+  if (locale === "id") {
+    return `Buat nilai acak lucu dan ramah keluarga untuk formulir kartu ulang tahun.
+Balas HANYA dengan JSON valid dengan bentuk persis ini (tanpa markdown, tanpa teks tambahan):
+{"name":"...","age":30,"hobby":"...","adjective":"...","pluralNouns":"..."}
+${exampleBlock}
+Aturan:
+- name: nama lucu kreatif, maks 50 karakter, bahasa Indonesia
+- age: bilangan bulat 1–120
+- hobby: frasa hobi lucu, maks 80 karakter, bahasa Indonesia
+- adjective: frasa kata sifat lucu, maks 40 karakter, bahasa Indonesia
+- pluralNouns: kata benda jamak lucu, maks 80 karakter, bahasa Indonesia
+- Whimsical dan absurd tapi ramah keluarga
+- ${genderInstruction(gender, locale)}
+- ${luckyLanguageInstruction(locale)}`;
+  }
+
   return `Generate funny, family-friendly random values for a birthday card form.
 Return ONLY valid JSON with this exact shape (no markdown, no extra text):
 {"name":"...","age":30,"hobby":"...","adjective":"...","pluralNouns":"..."}
@@ -19,7 +44,8 @@ Rules:
 - adjective: funny adjective phrase, max 40 characters
 - pluralNouns: funny plural nouns, max 80 characters
 - Be whimsical and absurd but family-friendly
-- ${genderInstruction(gender)}`;
+- ${genderInstruction(gender, locale)}
+- ${luckyLanguageInstruction(locale)}`;
 }
 
 function normalizeKeys(body) {
@@ -103,11 +129,12 @@ export async function handleLuckyFill(request, env) {
   }
 
   const gender = normalizeGender(body.gender);
+  const locale = normalizeLocale(body.locale);
 
   try {
     const result = await runChat(env, {
-      system: "You generate silly birthday card form values and respond with JSON only.",
-      user: buildLuckyPrompt(gender),
+      system: luckySystemPrompt(locale),
+      user: buildLuckyPrompt(gender, locale),
       max_tokens: 200,
       temperature: 0.9,
     });

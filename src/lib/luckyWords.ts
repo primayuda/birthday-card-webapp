@@ -1,4 +1,6 @@
 import type { Gender } from "@/lib/gender";
+import type { Locale } from "@/lib/i18n/locale";
+import { getRandomLuckyFillId } from "@/lib/luckyWordsId";
 
 function pick<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
@@ -86,7 +88,14 @@ export interface LuckyFill {
   pluralNouns: string;
 }
 
-export function getRandomLuckyFill(gender: Gender = "undisclosed"): LuckyFill {
+export function getRandomLuckyFill(
+  gender: Gender = "undisclosed",
+  locale: Locale = "en",
+): LuckyFill {
+  if (locale === "id") {
+    return getRandomLuckyFillId(gender);
+  }
+
   const names =
     gender === "male"
       ? LUCKY_NAMES_MALE

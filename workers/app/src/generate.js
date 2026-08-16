@@ -6,8 +6,27 @@ import {
   runChat,
 } from "./ai-utils.js";
 import { genderInstruction, normalizeGender } from "./gender.js";
+import {
+  messageLanguageInstruction,
+  messageSystemPrompt,
+  normalizeLocale,
+} from "./language.js";
 
 function buildPrompt(inputs) {
+  if (inputs.locale === "id") {
+    return `Tulis satu pesan kartu ulang tahun lucu dan ramah keluarga (2–4 kalimat, di bawah 320 karakter).
+WAJIB masukkan SEMUA detail ini secara natural:
+- Nama penerima: ${inputs.name}
+- Usia: ${inputs.age}
+- Hobi: ${inputs.hobby}
+- Kata sifat: ${inputs.adjective}
+- Kata benda jamak: ${inputs.pluralNouns}
+- ${genderInstruction(inputs.gender, inputs.locale)}
+- ${messageLanguageInstruction(inputs.locale)}
+
+Nada: playful dan witty. Output HANYA teks pesan, tanpa tanda kutip atau label.`;
+  }
+
   return `Write one funny, family-friendly birthday card message (2-4 sentences, under 320 characters).
 Must naturally include ALL of these details:
 - Recipient name: ${inputs.name}
@@ -15,7 +34,8 @@ Must naturally include ALL of these details:
 - Hobby: ${inputs.hobby}
 - Adjective: ${inputs.adjective}
 - Plural nouns: ${inputs.pluralNouns}
-- ${genderInstruction(inputs.gender)}
+- ${genderInstruction(inputs.gender, inputs.locale)}
+- ${messageLanguageInstruction(inputs.locale)}
 
 Tone: playful and witty. Output ONLY the message text, no quotes or labels.`;
 }
@@ -36,8 +56,9 @@ function validateInputs(body) {
   if (!Number.isInteger(age) || age < 1 || age > 120) return null;
 
   const gender = normalizeGender(body.gender);
+  const locale = normalizeLocale(body.locale);
 
-  return { name, age, hobby, adjective, pluralNouns, gender };
+  return { name, age, hobby, adjective, pluralNouns, gender, locale };
 }
 
 function cleanMessage(text) {
@@ -89,7 +110,7 @@ export async function handleGenerate(request, env) {
 
   try {
     const result = await runChat(env, {
-      system: "You write short, witty, family-friendly birthday card messages.",
+      system: messageSystemPrompt(inputs.locale),
       user: buildPrompt(inputs),
       max_tokens: 200,
       temperature: 0.8,

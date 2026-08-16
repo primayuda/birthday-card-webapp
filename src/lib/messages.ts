@@ -1,4 +1,7 @@
 import { normalizeGender, type Gender } from "@/lib/gender";
+import type { Locale } from "@/lib/i18n/locale";
+import { normalizeLocale } from "@/lib/i18n/locale";
+import { generateMessageId } from "@/lib/messagesId";
 
 export interface CardInputs {
   name: string;
@@ -7,6 +10,7 @@ export interface CardInputs {
   adjective: string;
   pluralNouns: string;
   gender: Gender;
+  locale: Locale;
 }
 
 function capitalize(str: string): string {
@@ -92,6 +96,7 @@ export function normalizeInputs(
   adjective: string,
   pluralNouns: string,
   gender: Gender | string = "undisclosed",
+  locale: Locale | string = "en",
 ): CardInputs {
   return {
     name: capitalize(name.trim()),
@@ -100,13 +105,17 @@ export function normalizeInputs(
     adjective: lower(adjective),
     pluralNouns: lower(pluralNouns),
     gender: normalizeGender(gender),
+    locale: normalizeLocale(String(locale)),
   };
 }
 
 export function generateMessage(
   inputs: CardInputs,
-  excludeIndex = -1
+  excludeIndex = -1,
 ): { text: string; index: number } {
+  if (inputs.locale === "id") {
+    return generateMessageId(inputs, excludeIndex);
+  }
   let index: number;
   do {
     index = Math.floor(Math.random() * templates.length);

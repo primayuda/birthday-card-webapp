@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/main.astro";
 import FloatingBackground from "@/components/FloatingBackground.astro";
-import { BirthdayCardGenerator } from "@/components/BirthdayCardGenerator";
+import { BirthdayCardApp } from "@/components/BirthdayCardApp";
 ---
 
 <Layout title="Birthday Bash Card Maker">
@@ -16,18 +16,7 @@ import { BirthdayCardGenerator } from "@/components/BirthdayCardGenerator";
     />
     <FloatingBackground />
     <div class="relative z-1">
-    <BirthdayCardGenerator client:load />
-    <footer class="relative mt-12 text-center text-sm text-muted-foreground">
-      <p>Made with too much cake and questionable humor.</p>
-      <p class="mt-2">
-        <a
-          href="https://primayuda.dev"
-          class="font-medium text-primary underline-offset-4 hover:underline"
-        >
-          @primayuda.dev
-        </a>
-      </p>
-    </footer>
+    <BirthdayCardApp client:load />
     </div>
   </main>
 </Layout>

@@ -6,7 +6,17 @@ export function normalizeGender(value) {
   return "undisclosed";
 }
 
-export function genderInstruction(gender) {
+export function genderInstruction(gender, locale = "en") {
+  if (locale === "id") {
+    if (gender === "male") {
+      return "Jenis kelamin: laki-laki. Gunakan kata ganti dia (laki-laki) bila natural dan pilih nama lucu maskulin saat membuat nama.";
+    }
+    if (gender === "female") {
+      return "Jenis kelamin: perempuan. Gunakan kata ganti dia (perempuan) bila natural dan pilih nama lucu feminin saat membuat nama.";
+    }
+    return "Jenis kelamin: tidak ingin menyebutkan. Gunakan nama orang saja; hindari kata ganti gender dan stereotip nama.";
+  }
+
   if (gender === "male") {
     return "Recipient gender: male. Use he/him pronouns where natural and pick a traditionally masculine funny name when generating names.";
   }

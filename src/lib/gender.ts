@@ -1,10 +1,6 @@
 export type Gender = "male" | "female" | "undisclosed";
 
-export const GENDER_OPTIONS: { value: Gender; label: string }[] = [
-  { value: "male", label: "Male" },
-  { value: "female", label: "Female" },
-  { value: "undisclosed", label: "Prefer not to disclose" },
-];
+export const GENDER_VALUES: Gender[] = ["male", "female", "undisclosed"];
 
 export function normalizeGender(value: string | undefined): Gender {
   const normalized = String(value ?? "").trim().toLowerCase();

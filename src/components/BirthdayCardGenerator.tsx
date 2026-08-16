@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import { Sparkles, Cake, Clover, Loader2 } from "lucide-react";
 
-import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   BirthdayCardPreview,
   type GeneratedCard,
@@ -16,12 +15,19 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GENDER_VALUES, type Gender } from "@/lib/gender";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { normalizeInputs, type CardInputs } from "@/lib/messages";
-import { GENDER_OPTIONS, type Gender } from "@/lib/gender";
 import { requestCardMessage } from "@/lib/requestCardMessage";
 import { requestLuckyFill } from "@/lib/requestLuckyFill";
 import { requestBirthdayImage } from "@/lib/requestBirthdayImage";
 import { cn } from "@/lib/utils";
+
+const GENDER_LABEL_KEYS = {
+  male: "form.genderMale",
+  female: "form.genderFemale",
+  undisclosed: "form.genderUndisclosed",
+} as const;
 
 async function createCard(
   inputs: CardInputs,
@@ -47,6 +53,7 @@ async function createCard(
 }
 
 export function BirthdayCardGenerator() {
+  const { locale, t } = useLocale();
   const [name, setName] = useState("");
   const [gender, setGender] = useState<Gender>("undisclosed");
   const [age, setAge] = useState("");
@@ -77,7 +84,15 @@ export function BirthdayCardGenerator() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return null;
 
-    return normalizeInputs(name, parsedAge, hobby, adjective, pluralNouns, gender);
+    return normalizeInputs(
+      name,
+      parsedAge,
+      hobby,
+      adjective,
+      pluralNouns,
+      gender,
+      locale,
+    );
   }
 
   async function addCard(inputs: CardInputs) {
@@ -118,7 +133,10 @@ export function BirthdayCardGenerator() {
     try {
       const excludeIndex =
         card.messageSource === "template" ? card.templateIndex : -1;
-      const next = await createCard(card.inputs, excludeIndex);
+      const next = await createCard(
+        { ...card.inputs, locale },
+        excludeIndex,
+      );
       setCards((prev) =>
         prev.map((item) =>
           item.id === cardId
@@ -154,10 +172,10 @@ export function BirthdayCardGenerator() {
     setErrors({});
 
     try {
-      const fill = await requestLuckyFill(gender);
+      const fill = await requestLuckyFill(gender, locale);
 
       if (!name.trim()) setName(fill.name);
-      if (!age.trim()) setAge(fill.age);
+      if (!age.trim()) setAge(String(fill.age));
       if (!hobby.trim()) setHobby(fill.hobby);
       if (!adjective.trim()) setAdjective(fill.adjective);
       if (!pluralNouns.trim()) setPluralNouns(fill.pluralNouns);
@@ -168,8 +186,6 @@ export function BirthdayCardGenerator() {
 
   return (
     <div className="relative mx-auto w-full max-w-6xl space-y-6 sm:space-y-8">
-      <ThemeToggle className="fixed top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))] z-20 shadow-sm" />
-
       <header className="space-y-3 px-1 pt-12 text-center sm:pt-0">
         <Cake
           className="mx-auto size-8 text-primary sm:size-9"
@@ -178,14 +194,13 @@ export function BirthdayCardGenerator() {
         />
         <div className="space-y-2">
           <p className="text-xs font-medium tracking-widest text-primary/80 uppercase sm:text-sm">
-            Celebrate &amp; Create
+            {t("header.tagline")}
           </p>
           <h1 className="font-heading text-3xl leading-tight font-bold tracking-tight bg-linear-to-r from-sky-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent sm:text-4xl lg:text-5xl dark:from-sky-400 dark:via-blue-400 dark:to-indigo-300">
-            Birthday Bash Card Maker
+            {t("header.title")}
           </h1>
           <p className="mx-auto max-w-xl text-sm text-muted-foreground sm:text-base">
-            Fill in the details below — AI writes a fresh message for each card,
-            with classic templates as backup.
+            {t("header.subtitle")}
           </p>
         </div>
       </header>
@@ -193,19 +208,17 @@ export function BirthdayCardGenerator() {
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-10">
         <Card className="border-border bg-card/95 shadow-lg shadow-blue-500/10 backdrop-blur-sm lg:sticky lg:top-8 dark:shadow-black/25">
           <CardHeader>
-            <CardTitle>Card details</CardTitle>
-            <CardDescription>
-              Tell us about the birthday star and we&apos;ll do the rest.
-            </CardDescription>
+            <CardTitle>{t("form.title")}</CardTitle>
+            <CardDescription>{t("form.description")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">{t("form.name")}</Label>
                 <Input
                   id="name"
                   name="name"
-                  placeholder="e.g. Alex"
+                  placeholder={t("form.namePlaceholder")}
                   autoComplete="off"
                   maxLength={50}
                   value={name}
@@ -216,39 +229,39 @@ export function BirthdayCardGenerator() {
               </div>
 
               <div className="space-y-2">
-                <Label id="gender-label">Gender</Label>
+                <Label id="gender-label">{t("form.gender")}</Label>
                 <div
                   className="grid grid-cols-1 gap-2 sm:grid-cols-3"
                   role="radiogroup"
                   aria-labelledby="gender-label"
                 >
-                  {GENDER_OPTIONS.map((option) => (
+                  {GENDER_VALUES.map((value) => (
                     <button
-                      key={option.value}
+                      key={value}
                       type="button"
                       role="radio"
-                      aria-checked={gender === option.value}
-                      onClick={() => setGender(option.value)}
+                      aria-checked={gender === value}
+                      onClick={() => setGender(value)}
                       className={cn(
                         "touch-manipulation rounded-md border px-3 py-2.5 text-left text-sm transition-colors",
-                        gender === option.value
+                        gender === value
                           ? "border-primary bg-primary/10 font-medium text-primary"
                           : "border-border bg-background hover:bg-muted/50",
                       )}
                     >
-                      {option.label}
+                      {t(GENDER_LABEL_KEYS[value])}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="age">Age</Label>
+                <Label htmlFor="age">{t("form.age")}</Label>
                 <Input
                   id="age"
                   name="age"
                   type="number"
-                  placeholder="e.g. 30"
+                  placeholder={t("form.agePlaceholder")}
                   min={1}
                   max={120}
                   value={age}
@@ -259,11 +272,11 @@ export function BirthdayCardGenerator() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="hobby">Hobby</Label>
+                <Label htmlFor="hobby">{t("form.hobby")}</Label>
                 <Input
                   id="hobby"
                   name="hobby"
-                  placeholder="e.g. baking"
+                  placeholder={t("form.hobbyPlaceholder")}
                   autoComplete="off"
                   maxLength={80}
                   value={hobby}
@@ -274,11 +287,11 @@ export function BirthdayCardGenerator() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="adjective">Adjective</Label>
+                <Label htmlFor="adjective">{t("form.adjective")}</Label>
                 <Input
                   id="adjective"
                   name="adjective"
-                  placeholder="e.g. spectacular"
+                  placeholder={t("form.adjectivePlaceholder")}
                   autoComplete="off"
                   maxLength={40}
                   value={adjective}
@@ -289,11 +302,11 @@ export function BirthdayCardGenerator() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="plural-nouns">Plural nouns</Label>
+                <Label htmlFor="plural-nouns">{t("form.pluralNouns")}</Label>
                 <Input
                   id="plural-nouns"
                   name="pluralNouns"
-                  placeholder="e.g. puppies, rainbows"
+                  placeholder={t("form.pluralNounsPlaceholder")}
                   autoComplete="off"
                   maxLength={80}
                   value={pluralNouns}
@@ -315,12 +328,12 @@ export function BirthdayCardGenerator() {
                   {isLuckyLoading ? (
                     <>
                       <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden="true" />
-                      <span>Getting lucky…</span>
+                      <span>{t("form.luckyLoading")}</span>
                     </>
                   ) : (
                     <>
                       <Clover className="size-4 shrink-0" aria-hidden="true" />
-                      I&apos;m feeling lucky
+                      {t("form.lucky")}
                     </>
                   )}
                 </Button>
@@ -333,13 +346,13 @@ export function BirthdayCardGenerator() {
                   {isGenerating ? (
                     <>
                       <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden="true" />
-                      <span>Generating…</span>
+                      <span>{t("form.generating")}</span>
                     </>
                   ) : (
                     <>
                       <Sparkles className="size-4 shrink-0" aria-hidden="true" />
-                      <span className="sm:hidden">Generate card</span>
-                      <span className="hidden sm:inline">Generate funny message</span>
+                      <span className="sm:hidden">{t("form.generateShort")}</span>
+                      <span className="hidden sm:inline">{t("form.generateLong")}</span>
                     </>
                   )}
                 </Button>

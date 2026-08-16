@@ -3,6 +3,7 @@ import { Copy, Check, RefreshCw } from "lucide-react";
 
 import { PlayBirthdaySongButton } from "@/components/PlayBirthdaySongButton";
 import { Button } from "@/components/ui/button";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import type { CardInputs } from "@/lib/messages";
 import type { MessageSource, FallbackReason } from "@/lib/requestCardMessage";
 import { BIRTHDAY_IMAGES, type ImageAttribution, type ImageSource } from "@/lib/birthdayImages";
@@ -39,6 +40,7 @@ function BirthdayCardItem({
   isNewest,
   isShuffling,
 }: BirthdayCardItemProps) {
+  const { t } = useLocale();
   const [imageError, setImageError] = useState(false);
   const fallbackImage = BIRTHDAY_IMAGES[0];
 
@@ -51,18 +53,18 @@ function BirthdayCardItem({
           variant="outline"
           size="sm"
           onClick={onCopy}
-          title="Copies plain text only"
+          title={t("preview.copyTitle")}
           className="touch-manipulation min-h-11 w-full sm:min-h-8 sm:w-auto"
         >
           {copied ? (
             <>
               <Check className="size-4 shrink-0" aria-hidden="true" />
-              <span className="truncate">Copied!</span>
+              <span className="truncate">{t("preview.copied")}</span>
             </>
           ) : (
             <>
               <Copy className="size-4 shrink-0" aria-hidden="true" />
-              <span className="truncate">Copy</span>
+              <span className="truncate">{t("preview.copy")}</span>
             </>
           )}
         </Button>
@@ -78,7 +80,9 @@ function BirthdayCardItem({
             className={cn("size-4 shrink-0", isShuffling && "animate-spin")}
             aria-hidden="true"
           />
-          <span className="truncate">{isShuffling ? "Shuffling…" : "Shuffle"}</span>
+          <span className="truncate">
+            {isShuffling ? t("preview.shuffling") : t("preview.shuffle")}
+          </span>
         </Button>
       </div>
 
@@ -105,7 +109,7 @@ function BirthdayCardItem({
                 card.imageSource === "unsplash" &&
                 card.imageAttribution && (
                   <p className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-2 py-1.5 text-[10px] leading-snug text-white/95 sm:text-xs">
-                    Photo by{" "}
+                    {t("preview.photoBy")}{" "}
                     <a
                       href={card.imageAttribution.photographerUrl}
                       target="_blank"
@@ -114,14 +118,14 @@ function BirthdayCardItem({
                     >
                       {card.imageAttribution.photographerName}
                     </a>{" "}
-                    on{" "}
+                    {t("preview.onUnsplash")}{" "}
                     <a
                       href="https://unsplash.com/?utm_source=birthday_card_webapp&utm_medium=referral"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="underline underline-offset-2"
                     >
-                      Unsplash
+                      {t("preview.unsplash")}
                     </a>
                   </p>
                 )}
@@ -159,7 +163,7 @@ function BirthdayCardItem({
                 <div className="relative">
                   <div className="rounded-full bg-linear-to-r from-sky-500 via-blue-500 to-indigo-500 px-5 py-1.5 shadow-md shadow-blue-500/25 sm:px-6 sm:py-2">
                     <p className="font-heading text-base font-semibold tracking-wide text-white sm:text-xl">
-                      Happy Birthday!
+                      {t("preview.happyBirthday")}
                     </p>
                   </div>
                   <span className="absolute -top-2 -right-3 text-lg" aria-hidden="true">
@@ -172,7 +176,7 @@ function BirthdayCardItem({
               </div>
 
               <p className="mb-4 text-center text-sm font-medium tracking-wide text-primary uppercase">
-                For {card.recipientName}
+                {t("preview.forRecipient", { name: card.recipientName })}
               </p>
 
               <div className="flex flex-1 flex-col justify-center">
@@ -182,18 +186,18 @@ function BirthdayCardItem({
                 {card.messageSource === "template" && (
                   <p className="mt-3 text-center text-xs text-muted-foreground">
                     {card.fallbackReason === "daily_limit"
-                      ? "Classic message — AI daily limit reached."
-                      : "Classic message — AI unavailable."}
+                      ? t("preview.fallbackDailyLimit")
+                      : t("preview.fallbackUnavailable")}
                   </p>
                 )}
               </div>
 
               <div className="mt-6 border-t border-dashed border-border pt-5 text-center sm:mt-8 sm:pt-6">
                 <p className="text-sm text-muted-foreground italic">
-                  Wishing you laughter, cake, and a year to remember!
+                  {t("preview.footerWish")}
                 </p>
                 <p className="mt-2 text-xs tracking-widest text-primary/70 uppercase">
-                  🎉 Celebrate big 🎉
+                  {t("preview.footerCelebrate")}
                 </p>
               </div>
               </div>
@@ -221,19 +225,20 @@ export const BirthdayCardPreview = forwardRef<
   { cards, copiedId, shufflingId, onCopy, onShuffle, className },
   ref
 ) {
+  const { t } = useLocale();
+
+  const previewLabel =
+    cards.length === 0 || cards.length === 1
+      ? t("preview.insideEmpty")
+      : t("preview.insideMany", { count: cards.length });
+
   return (
     <div
       ref={ref}
       className={cn("flex scroll-mt-20 flex-col gap-3 sm:scroll-mt-8", className)}
     >
       <div className="px-1">
-        <p className="text-sm font-medium text-primary/80">
-          {cards.length === 0
-            ? "Inside your card"
-            : cards.length === 1
-              ? "Inside your card"
-              : `Your cards (${cards.length})`}
-        </p>
+        <p className="text-sm font-medium text-primary/80">{previewLabel}</p>
       </div>
 
       {cards.length === 0 ? (
@@ -247,8 +252,7 @@ export const BirthdayCardPreview = forwardRef<
                 🎂
               </p>
               <p className="mt-3 text-center text-sm leading-relaxed text-muted-foreground">
-                Fill in the details and generate a message — it&apos;ll show up
-                here like the inside of a real birthday card.
+                {t("preview.empty")}
               </p>
             </div>
           </div>
