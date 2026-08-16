@@ -19,6 +19,10 @@ The app is hosted on [primayuda.dev](https://primayuda.dev) at the `/birthday-ca
 | --- | --- |
 | ![Birthday Bash Card Maker on laptop](docs/screenshots/laptop.png) | ![Birthday Bash Card Maker on mobile](docs/screenshots/mobile.png) |
 
+**Unsplash API review** — generated card with photographer attribution visible:
+
+![Generated card with Unsplash attribution](docs/screenshots/card-unsplash-attribution.png)
+
 ## Features
 
 - **AI messages** — Workers AI writes a fresh funny message per card (template fallback)
