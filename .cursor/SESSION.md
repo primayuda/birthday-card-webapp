@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-16  
 **Live URL:** https://primayuda.dev/birthday-card-generator/  
 **Repo:** https://github.com/primayuda/birthday-card-webapp  
-**Latest commit:** `d7a261e` — Add session resume doc for Cursor with safe gitignore rules.
+**Latest commit:** `549736d` — Update README with screenshots, links, and refreshed docs.
 
 To resume in Cursor, say: **"Read `.cursor/SESSION.md` and continue where we left off."**
 
@@ -46,9 +46,9 @@ Template/local fallbacks run client-side when API fails or limits hit.
 
 ---
 
-## Secrets & env
+## Secrets setup (values not in repo)
 
-Set on Cloudflare Worker `birthday-card-webapp`:
+API keys and tokens are **never committed to Git**. Configure them here:
 
 ```bash
 npx wrangler secret put UNSPLASH_ACCESS_KEY --config workers/app/wrangler.jsonc

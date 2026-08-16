@@ -61,4 +61,6 @@ npx shadcn@latest add [component-name]
 
 ## Session resume (Cursor)
 
-See [`.cursor/SESSION.md`](.cursor/SESSION.md) for architecture, secrets, and project context.
+Using Cursor on this project? See [`.cursor/SESSION.md`](.cursor/SESSION.md) for architecture, deployment, and how to pick up where you left off.
+
+**No API keys or tokens are stored in this repository.** They are configured in Cloudflare Worker secrets and GitHub Actions (see SESSION.md for setup commands and secret names only).
